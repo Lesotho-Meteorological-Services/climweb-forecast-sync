@@ -667,7 +667,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
     p.add_argument("--workdir", default="./lms_forecastmanager_work")
     p.add_argument("--state-file", default="./lms_forecastmanager_work/state.json")
     p.add_argument("--city-mapping-csv", help="Optional CSV with source_city,target_city columns")
-    p.add_argument("--daily-effective-time", default="00:00:00")
+    p.add_argument("--daily-effective-time", default="00:01:00")
     p.add_argument("--daily-overlap-policy", choices=["skip_hourly_dates", "keep_all"], default="skip_hourly_dates")
 
     p.add_argument("--city-filter-mode", choices=["all", "districts_plus_special"], default="districts_plus_special")
