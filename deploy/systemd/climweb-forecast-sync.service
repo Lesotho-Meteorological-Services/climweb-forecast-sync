@@ -1,0 +1,10 @@
+[Unit]
+Description=ClimWeb Forecast Sync
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/climweb-forecast-sync
+EnvironmentFile=/opt/climweb-forecast-sync/deploy/climweb_forecast_sync.env
+ExecStart=/usr/bin/python3 /opt/climweb-forecast-sync/scripts/climweb_forecast_sync.py   --mode ${MODE}   --city-mapping-csv ${CITY_MAPPING_CSV}   --allowed-cities-file ${ALLOWED_CITIES_FILE}   --base-url ${BASE_URL}   --username ${USERNAME}   --password ${PASSWORD}   --remote-host ${REMOTE_HOST}   --remote-user ${REMOTE_USER}   --ssh-identity ${SSH_IDENTITY}   --workdir ${WORKDIR}   --state-file ${STATE_FILE}
