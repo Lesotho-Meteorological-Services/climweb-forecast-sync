@@ -480,6 +480,26 @@ def post_payload(base_url: str, token: str, payload: Dict[str, Any], verify: boo
     log(f"Posted {payload['forecast_date']} {payload['effective_time']} ({len(payload['city_forecasts'])} cities)")
 
 
+def compute_daily_skip_dates(
+    mode: str,
+    daily_overlap_policy: str,
+    hourly_rows: List[Dict[str, Any]],
+) -> List[str]:
+    """
+    Daily-only mode:
+    - never skip dates
+    - current day is included
+
+    Both mode:
+    - may skip daily dates already covered by hourly rows, depending on policy
+    """
+    if mode != "both":
+        return []
+    if daily_overlap_policy != "skip_hourly_dates":
+        return []
+    return sorted({row["date"] for row in hourly_rows})
+
+
 def sync_once(args: argparse.Namespace) -> int:
     workdir = Path(args.workdir).resolve()
     workdir.mkdir(parents=True, exist_ok=True)
@@ -555,10 +575,11 @@ def sync_once(args: argparse.Namespace) -> int:
         )
 
     if daily_enabled:
-        if args.mode == "both" and args.daily_overlap_policy == "skip_hourly_dates":
-            daily_skip_dates = sorted({row["date"] for row in hourly_rows})
-        else:
-            daily_skip_dates = []
+        daily_skip_dates = compute_daily_skip_dates(
+            mode=args.mode,
+            daily_overlap_policy=args.daily_overlap_policy,
+            hourly_rows=hourly_rows,
+        )
         daily_payloads, daily_map_stats, daily_unmapped, skipped_daily_dates = build_daily_payloads(
             rows=daily_rows,
             daily_effective_time=args.daily_effective_time,
@@ -594,6 +615,8 @@ def sync_once(args: argparse.Namespace) -> int:
         log(f"Daily CSV stats: {json.dumps(daily_stats, sort_keys=True)}")
         log(f"Daily filter stats: {json.dumps({k:v for k,v in daily_filter_stats.items() if k != 'dropped_place_names'}, sort_keys=True)}")
         log(f"Daily city mapping stats: {json.dumps(daily_map_stats, sort_keys=True)}")
+        if args.mode == "daily":
+            log("Daily-only mode: current day is included. No hourly-overlap skipping is applied.")
 
     dropped_names = sorted(set(hourly_filter_stats.get("dropped_place_names", [])) | set(daily_filter_stats.get("dropped_place_names", [])))
     if dropped_names:
