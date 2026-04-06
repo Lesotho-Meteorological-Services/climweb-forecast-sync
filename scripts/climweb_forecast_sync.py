@@ -376,8 +376,13 @@ def build_hourly_payloads(
             seen.add(city)
 
             data_values = {}
+            # if row["temperature"] is not None:
+            #     data_values["air_temperature"] = row["temperature"]
             if row["temperature"] is not None:
-                data_values["air_temperature"] = row["temperature"]
+                # Pragmatic ClimWeb workaround:
+                # store hourly temperature under air_temperature_max so we do not need a separate
+                # air_temperature parameter in Forecast Manager.
+                data_values["air_temperature_max"] = row["temperature"]
             if row["humidity"] is not None:
                 data_values["relative_humidity"] = row["humidity"]
             if row["wind_speed"] is not None:
